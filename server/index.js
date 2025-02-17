@@ -161,13 +161,14 @@ app.post('/api/bookings', async (req, res) => {
             RETURNING *
         `, [date, time_period, client_name, service_type, contact, email, address]);
 
-        // Update available slots
+        // Update available slots with proper decrement
         await db.query(`
             INSERT INTO available_slots (date, period, slots_available)
-            VALUES ($1, $2, $3)
+            VALUES ($1, $2, GREATEST(0, 4))  -- Default 5-1=4 for new entries
             ON CONFLICT (date, period)
             DO UPDATE SET slots_available = GREATEST(0, available_slots.slots_available - 1)
-        `, [date, time_period, 4]); // Default is 5-1=4 for new records
+            WHERE available_slots.date = $1 AND available_slots.period = $2
+        `, [date, time_period]);
 
         // Send confirmation email
         const booking = result.rows[0];
