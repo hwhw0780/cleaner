@@ -56,6 +56,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Add getSlotClass helper function
+    function getSlotClass(slots) {
+        if (slots === 0) return 'slots-none';
+        if (slots === 1) return 'slots-low';
+        if (slots === 2) return 'slots-medium';
+        return 'slots-high';
+    }
+
     // Get slot availability
     function fetchSlots(dateStr, dayDiv, morningSlots, afternoonSlots) {
         fetch(`/api/slots/${dateStr}`)
@@ -66,12 +74,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(slots => {
-                // Use nullish coalescing to handle undefined values
                 const morning = slots.morning ?? 5;
                 const afternoon = slots.afternoon ?? 5;
                 
+                // Update text content
                 morningSlots.textContent = morning;
                 afternoonSlots.textContent = afternoon;
+                
+                // Update classes based on availability
+                morningSlots.className = `morning-slots ${getSlotClass(morning)}`;
+                afternoonSlots.className = `afternoon-slots ${getSlotClass(afternoon)}`;
                 
                 // Disable if both slots are 0
                 if (morning <= 0 && afternoon <= 0) {
@@ -84,6 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error fetching slots:', error);
                 morningSlots.textContent = '5';
                 afternoonSlots.textContent = '5';
+                morningSlots.className = 'morning-slots slots-high';
+                afternoonSlots.className = 'afternoon-slots slots-high';
                 dayDiv.classList.remove('disabled');
             });
     }
@@ -160,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Show time slot container
                         timeSlotContainer.style.display = 'block';
                         
-                        // Update time slot availability
+                        // Update time slot availability with colors
                         fetch(`/api/slots/${dateStr}`)
                             .then(response => response.json())
                             .then(slots => {
@@ -168,15 +182,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 
                                 // Morning slot
                                 const morningAvailable = slots.morning ?? 5;
+                                const morningClass = getSlotClass(morningAvailable);
+                                
                                 if (morningAvailable <= 0) {
                                     timeSlots[0].disabled = true;
-                                    timeSlots[0].classList.add('disabled');
+                                    timeSlots[0].className = `time-slot slots-none`;
                                     timeSlots[0].innerHTML = currentLang === 'en' ? 
                                         'Morning (Fully Booked)' : 
                                         '上午 (已满)';
                                 } else {
                                     timeSlots[0].disabled = false;
-                                    timeSlots[0].classList.remove('disabled');
+                                    timeSlots[0].className = `time-slot ${morningClass}`;
                                     timeSlots[0].innerHTML = currentLang === 'en' ? 
                                         `Morning (8:00 AM - 12:00 PM) - ${morningAvailable} slots left` : 
                                         `上午 (8:00 - 12:00) - 剩余 ${morningAvailable} 个名额`;
@@ -184,15 +200,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 
                                 // Afternoon slot
                                 const afternoonAvailable = slots.afternoon ?? 5;
+                                const afternoonClass = getSlotClass(afternoonAvailable);
+                                
                                 if (afternoonAvailable <= 0) {
                                     timeSlots[1].disabled = true;
-                                    timeSlots[1].classList.add('disabled');
+                                    timeSlots[1].className = `time-slot slots-none`;
                                     timeSlots[1].innerHTML = currentLang === 'en' ? 
                                         'Afternoon (Fully Booked)' : 
                                         '下午 (已满)';
                                 } else {
                                     timeSlots[1].disabled = false;
-                                    timeSlots[1].classList.remove('disabled');
+                                    timeSlots[1].className = `time-slot ${afternoonClass}`;
                                     timeSlots[1].innerHTML = currentLang === 'en' ? 
                                         `Afternoon (1:00 PM - 5:00 PM) - ${afternoonAvailable} slots left` : 
                                         `下午 (13:00 - 17:00) - 剩余 ${afternoonAvailable} 个名额`;
@@ -201,6 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             .catch(error => {
                                 console.error('Error fetching slots:', error);
                                 const timeSlots = document.querySelectorAll('.time-slot');
+                                timeSlots[0].className = 'time-slot slots-high';
+                                timeSlots[1].className = 'time-slot slots-high';
                                 timeSlots[0].innerHTML = translations.timeSlots[currentLang].morning + ' - 5 slots left';
                                 timeSlots[1].innerHTML = translations.timeSlots[currentLang].afternoon + ' - 5 slots left';
                             });

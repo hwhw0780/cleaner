@@ -24,6 +24,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const slotManagement = document.getElementById('slotManagement');
     const selectedDateElement = document.getElementById('selectedDate');
 
+    // Add getSlotClass helper function
+    function getSlotClass(slots) {
+        if (slots === 0) return 'slots-none';
+        if (slots === 1) return 'slots-low';
+        if (slots === 2) return 'slots-medium';
+        return 'slots-high';
+    }
+
     function updateCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -65,22 +73,35 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const currentDay = new Date(year, month, day);
             
-            // Fetch slots for this date
+            // Update fetch slots section
             fetch(`/api/slots/${dateStr}`)
                 .then(response => response.json())
                 .then(slots => {
                     const slotsInfo = dayDiv.querySelector('.slots-info');
+                    const morning = slots.morning ?? 5;
+                    const afternoon = slots.afternoon ?? 5;
+                    
+                    const morningClass = getSlotClass(morning);
+                    const afternoonClass = getSlotClass(afternoon);
+                    
                     slotsInfo.innerHTML = `
-                        <small>M: ${slots.morning}</small>
-                        <small>A: ${slots.afternoon}</small>
+                        <small class="${morningClass}">M: ${morning}</small>
+                        <small class="${afternoonClass}">A: ${afternoon}</small>
                     `;
+                    
+                    // Disable if both slots are 0
+                    if (morning <= 0 && afternoon <= 0) {
+                        dayDiv.classList.add('disabled');
+                    } else {
+                        dayDiv.classList.remove('disabled');
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching slots:', error);
                     const slotsInfo = dayDiv.querySelector('.slots-info');
                     slotsInfo.innerHTML = `
-                        <small>M: 5</small>
-                        <small>A: 5</small>
+                        <small class="slots-high">M: 5</small>
+                        <small class="slots-high">A: 5</small>
                     `;
                 });
             

@@ -746,15 +746,67 @@ section {
     font-size: 0.75rem;
     color: var(--gray-600);
     padding: 0.25rem;
+    transition: all 0.3s ease;
 }
 
-.slots-info .morning-slots {
-    background: rgba(74, 144, 226, 0.1);
-    border-right: 1px dashed var(--gray-200);
+/* Slot availability colors */
+.slots-info .slots-high {
+    background: rgba(72, 187, 120, 0.2);  /* Green with opacity */
+    color: #2F855A;  /* Darker green for text */
 }
 
-.slots-info .afternoon-slots {
-    background: rgba(74, 144, 226, 0.05);
+.slots-info .slots-medium {
+    background: rgba(246, 173, 85, 0.2);  /* Orange with opacity */
+    color: #C05621;  /* Darker orange for text */
+}
+
+.slots-info .slots-low {
+    background: rgba(231, 76, 60, 0.2);  /* Red with opacity */
+    color: #C53030;  /* Darker red for text */
+}
+
+.slots-info .slots-none {
+    background: rgba(231, 76, 60, 0.4);  /* Brighter red with opacity */
+    color: #C53030;  /* Darker red for text */
+    font-weight: bold;
+}
+
+/* Time slot button colors */
+.time-slot.slots-high {
+    background: rgba(72, 187, 120, 0.1);
+    color: #2F855A;
+    border: 1px solid rgba(72, 187, 120, 0.3);
+}
+
+.time-slot.slots-medium {
+    background: rgba(246, 173, 85, 0.1);
+    color: #C05621;
+    border: 1px solid rgba(246, 173, 85, 0.3);
+}
+
+.time-slot.slots-low {
+    background: rgba(231, 76, 60, 0.1);
+    color: #C53030;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.time-slot.slots-none {
+    background: rgba(231, 76, 60, 0.2);
+    color: #C53030;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    cursor: not-allowed;
+}
+
+.time-slot.slots-high:hover {
+    background: rgba(72, 187, 120, 0.2);
+}
+
+.time-slot.slots-medium:hover {
+    background: rgba(246, 173, 85, 0.2);
+}
+
+.time-slot.slots-low:hover {
+    background: rgba(231, 76, 60, 0.2);
 }
 
 .calendar-day.disabled .slots-info {
