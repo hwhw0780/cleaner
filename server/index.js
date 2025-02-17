@@ -149,8 +149,10 @@ app.post('/api/bookings', async (req, res) => {
         if (slotsResult.rows.length > 0) {
             availableSlots = slotsResult.rows[0].slots_available;
         }
+        console.log('[DEBUG] Initial slots available:', availableSlots);
 
         if (availableSlots <= 0) {
+            console.log('[DEBUG] No slots available, rejecting booking');
             return res.status(400).json({ error: 'No slots available for this time' });
         }
 
@@ -160,15 +162,34 @@ app.post('/api/bookings', async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
         `, [date, time_period, client_name, service_type, contact, email, address]);
+        console.log('[DEBUG] Booking created successfully');
 
         // Update available slots with proper decrement
-        await db.query(`
+        const updateResult = await db.query(`
+            WITH current_slots AS (
+                SELECT slots_available 
+                FROM available_slots 
+                WHERE date = $1 AND period = $2
+            )
             INSERT INTO available_slots (date, period, slots_available)
             VALUES ($1, $2, GREATEST(0, 4))  -- Default 5-1=4 for new entries
-            ON CONFLICT (date, period)
-            DO UPDATE SET slots_available = GREATEST(0, available_slots.slots_available - 1)
+            ON CONFLICT (date, period) DO UPDATE 
+            SET slots_available = CASE 
+                WHEN available_slots.slots_available > 0 THEN available_slots.slots_available - 1 
+                ELSE 0 
+            END
             WHERE available_slots.date = $1 AND available_slots.period = $2
+            RETURNING slots_available
         `, [date, time_period]);
+        
+        console.log('[DEBUG] Slots after update:', updateResult.rows[0]?.slots_available);
+
+        // Verify the update
+        const verifyResult = await db.query(
+            'SELECT slots_available FROM available_slots WHERE date = $1 AND period = $2',
+            [date, time_period]
+        );
+        console.log('[DEBUG] Verified slots after update:', verifyResult.rows[0]?.slots_available);
 
         // Send confirmation email
         const booking = result.rows[0];
