@@ -48,6 +48,74 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString('en-US', options);
     }
 
+    // Update calendar function
+    function updateCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        
+        // Update month display
+        currentMonthElement.textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+        
+        // Get first day of month and total days
+        const firstDay = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+        
+        calendar.innerHTML = '';
+        
+        // Add empty cells for days before first of month
+        for (let i = 0; i < firstDay; i++) {
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'calendar-day empty';
+            calendar.appendChild(emptyDay);
+        }
+        
+        // Add days of month
+        for (let day = 1; day <= totalDays; day++) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'calendar-day';
+            
+            const currentDay = new Date(year, month, day);
+            const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            
+            dayDiv.textContent = day;
+            
+            // Add click handler for slot management
+            dayDiv.addEventListener('click', function() {
+                document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedDate = dateStr;
+                selectedDateElement.textContent = formatDate(dateStr);
+                slotManagement.style.display = 'block';
+                
+                // Fetch and display current slots
+                fetch(`/api/slots/${dateStr}`)
+                    .then(response => response.json())
+                    .then(slots => {
+                        document.getElementById('morningSlots').value = slots.morning ?? 5;
+                        document.getElementById('afternoonSlots').value = slots.afternoon ?? 5;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching slots:', error);
+                        document.getElementById('morningSlots').value = 5;
+                        document.getElementById('afternoonSlots').value = 5;
+                    });
+            });
+            
+            calendar.appendChild(dayDiv);
+        }
+    }
+
+    // Add event listeners for month navigation
+    document.querySelector('.month-nav.prev').addEventListener('click', function() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        updateCalendar();
+    });
+
+    document.querySelector('.month-nav.next').addEventListener('click', function() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        updateCalendar();
+    });
+
     // Fetch appointments from the server
     async function fetchAppointments() {
         try {
@@ -56,11 +124,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Failed to fetch appointments');
             }
             const appointments = await response.json();
-            return appointments; // Return the appointments data
+            populateAppointments(appointments); // Directly populate the appointments
+            return appointments;
         } catch (error) {
             console.error('Error fetching appointments:', error);
             alert('Failed to load appointments. Please try again.');
-            return []; // Return empty array on error
+            return [];
         }
     }
 
@@ -195,15 +264,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Add event listeners for filters
-    searchInput.addEventListener('input', filterAppointments);
-    statusFilter.addEventListener('change', filterAppointments);
-    dateFilter.addEventListener('change', filterAppointments);
+    searchInput.addEventListener('input', () => filterAppointments());
+    statusFilter.addEventListener('change', () => filterAppointments());
+    dateFilter.addEventListener('change', () => filterAppointments());
 
     // Initialize calendar
     updateCalendar();
 
     // Initial fetch of appointments
-    filterAppointments();
+    fetchAppointments();
 
     // Slot management functionality
     document.querySelectorAll('.save-slots').forEach(button => {
