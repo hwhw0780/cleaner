@@ -1573,4 +1573,60 @@ section {
         padding: 0.75rem;
         font-size: var(--text-sm);
     }
+}
+
+.language-switcher {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    z-index: 20;
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+}
+
+.language-btn {
+    background: transparent;
+    border: none;
+    color: var(--white);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: var(--radius-sm);
+}
+
+.language-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.language-btn.active {
+    background: var(--primary);
+}
+
+.language-divider {
+    width: 1px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .language-switcher {
+        top: 1rem;
+        right: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .language-switcher {
+        top: 0.75rem;
+        right: 0.75rem;
+    }
+    
+    .language-btn {
+        font-size: var(--text-xs);
+        padding: 0.2rem 0.4rem;
+    }
 } 

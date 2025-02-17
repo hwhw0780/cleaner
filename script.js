@@ -1,4 +1,40 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Language switcher functionality
+    const languageButtons = document.querySelectorAll('.language-btn');
+    let currentLang = 'en';
+
+    function switchLanguage(lang) {
+        currentLang = lang;
+        // Update active button state
+        languageButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+
+        // Update all translatable elements
+        document.querySelectorAll('[data-' + lang + ']').forEach(element => {
+            element.textContent = element.dataset[lang];
+        });
+
+        // Store language preference
+        localStorage.setItem('preferredLanguage', lang);
+    }
+
+    // Initialize language from localStorage or default to English
+    const savedLang = localStorage.getItem('preferredLanguage');
+    if (savedLang) {
+        switchLanguage(savedLang);
+    }
+
+    // Add click handlers to language buttons
+    languageButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lang = btn.dataset.lang;
+            if (lang !== currentLang) {
+                switchLanguage(lang);
+            }
+        });
+    });
+
     let currentDate = new Date();
     let selectedDate = null;
 
