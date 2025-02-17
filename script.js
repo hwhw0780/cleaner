@@ -68,48 +68,26 @@ document.addEventListener('DOMContentLoaded', function() {
         return slots[date][period];
     }
 
-    // Update time slot buttons based on availability
-    function updateTimeSlotAvailability(date) {
-        const timeSlots = document.querySelectorAll('.time-slot');
-        
-        fetch(`/api/slots/${date}`)
+    // Get slot availability
+    function fetchSlots(dateStr, dayDiv, morningSlots, afternoonSlots) {
+        fetch(`/api/slots/${dateStr}`)
             .then(response => response.json())
             .then(slots => {
-                // Morning slot (first button)
-                if (slots.morning <= 0) {
-                    timeSlots[0].disabled = true;
-                    timeSlots[0].classList.add('disabled');
-                    timeSlots[0].innerHTML = currentLang === 'en' ? 
-                        'Morning (Fully Booked)' : 
-                        '上午 (已满)';
-                } else {
-                    timeSlots[0].disabled = false;
-                    timeSlots[0].classList.remove('disabled');
-                    timeSlots[0].innerHTML = currentLang === 'en' ? 
-                        `Morning (8:00 AM - 12:00 PM) - ${slots.morning} slots left` : 
-                        `上午 (8:00 - 12:00) - 剩余 ${slots.morning} 个名额`;
-                }
-
-                // Afternoon slot (second button)
-                if (slots.afternoon <= 0) {
-                    timeSlots[1].disabled = true;
-                    timeSlots[1].classList.add('disabled');
-                    timeSlots[1].innerHTML = currentLang === 'en' ? 
-                        'Afternoon (Fully Booked)' : 
-                        '下午 (已满)';
-                } else {
-                    timeSlots[1].disabled = false;
-                    timeSlots[1].classList.remove('disabled');
-                    timeSlots[1].innerHTML = currentLang === 'en' ? 
-                        `Afternoon (1:00 PM - 5:00 PM) - ${slots.afternoon} slots left` : 
-                        `下午 (13:00 - 17:00) - 剩余 ${slots.afternoon} 个名额`;
+                const morning = slots.morning ?? 5;
+                const afternoon = slots.afternoon ?? 5;
+                
+                morningSlots.textContent = morning;
+                afternoonSlots.textContent = afternoon;
+                
+                // Disable if both slots are 0
+                if (morning <= 0 && afternoon <= 0) {
+                    dayDiv.classList.add('disabled');
                 }
             })
             .catch(error => {
                 console.error('Error fetching slots:', error);
-                // Set default values if fetch fails
-                timeSlots[0].innerHTML = translations.timeSlots[currentLang].morning + ' - 5 slots left';
-                timeSlots[1].innerHTML = translations.timeSlots[currentLang].afternoon + ' - 5 slots left';
+                morningSlots.textContent = '5';
+                afternoonSlots.textContent = '5';
             });
     }
 
@@ -158,23 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const afternoonSlots = document.createElement('div');
             afternoonSlots.className = 'afternoon-slots';
             
-            // Get slot availability
-            fetch(`/api/slots/${dateStr}`)
-                .then(response => response.json())
-                .then(slots => {
-                    morningSlots.textContent = `${slots.morning || 5}`;
-                    afternoonSlots.textContent = `${slots.afternoon || 5}`;
-                    
-                    // Disable if both slots are 0
-                    if ((slots.morning || 5) <= 0 && (slots.afternoon || 5) <= 0) {
-                        dayDiv.classList.add('disabled');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching slots:', error);
-                    morningSlots.textContent = '5';
-                    afternoonSlots.textContent = '5';
-                });
+            // Fetch and update slot availability
+            fetchSlots(dateStr, dayDiv, morningSlots, afternoonSlots);
             
             slotsInfo.appendChild(morningSlots);
             slotsInfo.appendChild(afternoonSlots);
@@ -197,9 +160,53 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.classList.add('selected');
                         selectedDate = dateStr;
                         
-                        // Update time slot availability
-                        updateTimeSlotAvailability(dateStr);
+                        // Show time slot container
                         timeSlotContainer.style.display = 'block';
+                        
+                        // Update time slot availability
+                        fetch(`/api/slots/${dateStr}`)
+                            .then(response => response.json())
+                            .then(slots => {
+                                const timeSlots = document.querySelectorAll('.time-slot');
+                                
+                                // Morning slot
+                                const morningAvailable = slots.morning ?? 5;
+                                if (morningAvailable <= 0) {
+                                    timeSlots[0].disabled = true;
+                                    timeSlots[0].classList.add('disabled');
+                                    timeSlots[0].innerHTML = currentLang === 'en' ? 
+                                        'Morning (Fully Booked)' : 
+                                        '上午 (已满)';
+                                } else {
+                                    timeSlots[0].disabled = false;
+                                    timeSlots[0].classList.remove('disabled');
+                                    timeSlots[0].innerHTML = currentLang === 'en' ? 
+                                        `Morning (8:00 AM - 12:00 PM) - ${morningAvailable} slots left` : 
+                                        `上午 (8:00 - 12:00) - 剩余 ${morningAvailable} 个名额`;
+                                }
+                                
+                                // Afternoon slot
+                                const afternoonAvailable = slots.afternoon ?? 5;
+                                if (afternoonAvailable <= 0) {
+                                    timeSlots[1].disabled = true;
+                                    timeSlots[1].classList.add('disabled');
+                                    timeSlots[1].innerHTML = currentLang === 'en' ? 
+                                        'Afternoon (Fully Booked)' : 
+                                        '下午 (已满)';
+                                } else {
+                                    timeSlots[1].disabled = false;
+                                    timeSlots[1].classList.remove('disabled');
+                                    timeSlots[1].innerHTML = currentLang === 'en' ? 
+                                        `Afternoon (1:00 PM - 5:00 PM) - ${afternoonAvailable} slots left` : 
+                                        `下午 (13:00 - 17:00) - 剩余 ${afternoonAvailable} 个名额`;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching slots:', error);
+                                const timeSlots = document.querySelectorAll('.time-slot');
+                                timeSlots[0].innerHTML = translations.timeSlots[currentLang].morning + ' - 5 slots left';
+                                timeSlots[1].innerHTML = translations.timeSlots[currentLang].afternoon + ' - 5 slots left';
+                            });
                     }
                 });
             }
