@@ -79,9 +79,35 @@ const initializeDatabase = async () => {
                 contact VARCHAR(20) NOT NULL,
                 email VARCHAR(100),
                 address TEXT NOT NULL,
+                payment_method VARCHAR(20) NOT NULL DEFAULT 'cash' CHECK (payment_method IN ('cash', 'online')),
+                receipt_path VARCHAR(255),
                 status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        `);
+
+        // Add columns if they don't exist (for existing tables)
+        await db.query(`
+            DO $$ 
+            BEGIN 
+                BEGIN
+                    ALTER TABLE bookings 
+                    ADD COLUMN payment_method VARCHAR(20) NOT NULL DEFAULT 'cash',
+                    ADD COLUMN receipt_path VARCHAR(255);
+                EXCEPTION
+                    WHEN duplicate_column THEN 
+                        NULL;
+                END;
+                
+                BEGIN
+                    ALTER TABLE bookings 
+                    ADD CONSTRAINT bookings_payment_method_check 
+                    CHECK (payment_method IN ('cash', 'online'));
+                EXCEPTION
+                    WHEN duplicate_object THEN 
+                        NULL;
+                END;
+            END $$;
         `);
 
         console.log('Database initialized successfully');
