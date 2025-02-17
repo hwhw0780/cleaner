@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const db = require('./db');
+const { sendConfirmationEmail } = require('./emailService');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -157,7 +158,21 @@ app.post('/api/bookings', async (req, res) => {
             DO UPDATE SET slots_available = GREATEST(available_slots.slots_available - 1, 0)
         `, [date, time_period, availableSlots - 1]);
 
-        res.status(201).json(result.rows[0]);
+        // Send confirmation email
+        const booking = result.rows[0];
+        const emailSent = await sendConfirmationEmail({
+            email,
+            clientName: client_name,
+            date,
+            time_period,
+            service_type,
+            address
+        });
+
+        res.status(201).json({
+            booking: result.rows[0],
+            emailSent
+        });
     } catch (error) {
         console.error('Error creating booking:', error);
         res.status(500).json({ error: error.message });
