@@ -133,14 +133,75 @@ body {
 
 @media (max-width: 768px) {
     .banner {
-        height: 60vh;
+        height: 80vh;
         margin: 0;
+        background-position: center 20%;
+    }
+
+    .banner-content {
+        width: 100%;
+        padding: 1.5rem;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
+    }
+    
+    .banner-logo img {
+        width: 120px;
+    }
+
+    .banner-text {
+        max-width: 100%;
+    }
+
+    .banner-text h1 {
+        font-size: var(--text-2xl);
+    }
+    
+    .banner-text h2 {
+        font-size: var(--text-xl);
+    }
+    
+    .banner-text p {
+        font-size: var(--text-base);
     }
 }
 
 @media (max-width: 480px) {
     .banner {
-        height: 50vh;
+        height: 90vh;
+        background-position: center 20%;
+    }
+    
+    .banner-content {
+        padding: 1rem;
+    }
+    
+    .banner-logo {
+        top: 1rem;
+        left: 1rem;
+    }
+    
+    .banner-logo img {
+        width: 100px;
+    }
+    
+    .banner-text h1 {
+        font-size: var(--text-xl);
+    }
+    
+    .banner-text h2 {
+        font-size: var(--text-lg);
+        margin-bottom: 1rem;
+    }
+    
+    .banner-text p {
+        font-size: var(--text-sm);
+    }
+
+    .banner-cta {
+        width: 100%;
+        text-align: center;
+        padding: 0.75rem 1rem;
+        font-size: var(--text-sm);
     }
 }
 
@@ -1409,4 +1470,107 @@ section {
 .fade-in.visible {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Calendar Responsive Styles */
+@media (max-width: 768px) {
+    .booking-container {
+        margin: 0 1rem;
+        max-width: 100%;
+    }
+
+    .calendar-container {
+        padding: 1rem;
+    }
+    
+    .weekdays {
+        gap: 0.25rem;
+    }
+    
+    .weekdays div {
+        font-size: var(--text-xs);
+        padding: 0.25rem;
+    }
+    
+    .calendar {
+        gap: 0.25rem;
+    }
+    
+    .calendar-day {
+        font-size: var(--text-sm);
+        padding: 0.25rem;
+    }
+
+    .time-slots {
+        padding: 1rem;
+    }
+
+    .time-slot {
+        padding: 0.75rem;
+        font-size: var(--text-sm);
+    }
+
+    .service-type-options {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .service-option {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .booking-container {
+        margin: 0 0.5rem;
+    }
+
+    .calendar-container {
+        padding: 0.75rem;
+    }
+    
+    .month-selector {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    #currentMonth {
+        font-size: var(--text-base);
+    }
+    
+    .month-nav {
+        width: 2rem;
+        height: 2rem;
+        font-size: var(--text-base);
+    }
+    
+    .calendar-day {
+        font-size: var(--text-xs);
+        padding: 0.25rem;
+    }
+
+    .booking-form {
+        padding: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 0.5rem;
+        font-size: var(--text-sm);
+    }
+
+    .form-buttons {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .back-btn,
+    .submit-btn {
+        padding: 0.75rem;
+        font-size: var(--text-sm);
+    }
 } 
