@@ -56,10 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Failed to fetch appointments');
             }
             const appointments = await response.json();
-            populateAppointments(appointments);
+            return appointments; // Return the appointments data
         } catch (error) {
             console.error('Error fetching appointments:', error);
             alert('Failed to load appointments. Please try again.');
+            return []; // Return empty array on error
         }
     }
 
@@ -144,54 +145,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Search and filter functionality
-    function filterAppointments() {
-        fetchAppointments().then(appointments => {
-            if (!appointments) return;
+    async function filterAppointments() {
+        const appointments = await fetchAppointments();
+        if (!appointments || appointments.length === 0) return;
 
-            let filtered = [...appointments];
+        let filtered = [...appointments];
 
-            // Apply search filter
-            const searchTerm = searchInput.value.toLowerCase();
-            if (searchTerm) {
-                filtered = filtered.filter(appointment => 
-                    appointment.client_name.toLowerCase().includes(searchTerm) ||
-                    appointment.address.toLowerCase().includes(searchTerm) ||
-                    appointment.contact.includes(searchTerm)
-                );
-            }
+        // Apply search filter
+        const searchTerm = searchInput.value.toLowerCase();
+        if (searchTerm) {
+            filtered = filtered.filter(appointment => 
+                appointment.client_name.toLowerCase().includes(searchTerm) ||
+                appointment.address.toLowerCase().includes(searchTerm) ||
+                appointment.contact.includes(searchTerm)
+            );
+        }
 
-            // Apply status filter
-            const status = statusFilter.value;
-            if (status !== 'all') {
-                filtered = filtered.filter(appointment => appointment.status === status);
-            }
+        // Apply status filter
+        const status = statusFilter.value;
+        if (status !== 'all') {
+            filtered = filtered.filter(appointment => appointment.status === status);
+        }
 
-            // Apply date filter
-            const dateOption = dateFilter.value;
-            const today = new Date();
-            if (dateOption !== 'all') {
-                filtered = filtered.filter(appointment => {
-                    const appointmentDate = new Date(appointment.date);
-                    switch(dateOption) {
-                        case 'today':
-                            return appointmentDate.toDateString() === today.toDateString();
-                        case 'tomorrow':
-                            const tomorrow = new Date(today);
-                            tomorrow.setDate(tomorrow.getDate() + 1);
-                            return appointmentDate.toDateString() === tomorrow.toDateString();
-                        case 'week':
-                            const weekLater = new Date(today);
-                            weekLater.setDate(weekLater.getDate() + 7);
-                            return appointmentDate >= today && appointmentDate <= weekLater;
-                        case 'month':
-                            return appointmentDate.getMonth() === today.getMonth() &&
-                                   appointmentDate.getFullYear() === today.getFullYear();
-                    }
-                });
-            }
+        // Apply date filter
+        const dateOption = dateFilter.value;
+        const today = new Date();
+        if (dateOption !== 'all') {
+            filtered = filtered.filter(appointment => {
+                const appointmentDate = new Date(appointment.date);
+                switch(dateOption) {
+                    case 'today':
+                        return appointmentDate.toDateString() === today.toDateString();
+                    case 'tomorrow':
+                        const tomorrow = new Date(today);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        return appointmentDate.toDateString() === tomorrow.toDateString();
+                    case 'week':
+                        const weekLater = new Date(today);
+                        weekLater.setDate(weekLater.getDate() + 7);
+                        return appointmentDate >= today && appointmentDate <= weekLater;
+                    case 'month':
+                        return appointmentDate.getMonth() === today.getMonth() &&
+                               appointmentDate.getFullYear() === today.getFullYear();
+                }
+            });
+        }
 
-            populateAppointments(filtered);
-        });
+        populateAppointments(filtered);
     }
 
     // Add event listeners for filters
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCalendar();
 
     // Initial fetch of appointments
-    fetchAppointments();
+    filterAppointments();
 
     // Slot management functionality
     document.querySelectorAll('.save-slots').forEach(button => {
