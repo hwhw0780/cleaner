@@ -4,13 +4,19 @@
   "description": "Professional Cleaning Service Website",
   "main": "server/index.js",
   "scripts": {
-    "start": "node server/index.js"
+    "start": "cd server && npm install && node index.js",
+    "build": "cd server && npm install",
+    "dev": "cd server && npm run dev"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "pg": "^8.11.3",
-    "nodemailer": "^6.9.9"
+    "nodemailer": "^6.9.9",
+    "multer": "^1.4.5-lts.1"
   }
 } 

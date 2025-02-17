@@ -4,27 +4,27 @@ const path = require('path');
 const db = require('./db');
 const multer = require('multer');
 const { sendConfirmationEmail } = require('./emailService');
+const fs = require('fs');
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 10000;
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/') // Make sure this directory exists
+        const uploadDir = path.join(__dirname, '..', 'uploads');
+        // Create uploads directory if it doesn't exist
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname)
+        cb(null, Date.now() + '-' + file.originalname);
     }
 });
 
 const upload = multer({ storage: storage });
-
-// Create uploads directory if it doesn't exist
-const fs = require('fs');
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
-}
 
 // Check environment variables at startup
 console.log('Checking environment configuration...');
@@ -43,9 +43,14 @@ app.use(express.json());
 
 // Serve static files from the root directory
 app.use(express.static(path.join(__dirname, '..')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Serve index.html for the root route
-app.get('/', (req, res) => {
+// Serve index.html for all routes except /api
+app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+        next();
+        return;
+    }
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
