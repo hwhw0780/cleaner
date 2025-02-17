@@ -56,6 +56,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // Get available slots from localStorage
+    function getAvailableSlots() {
+        return JSON.parse(localStorage.getItem('availableSlots')) || {};
+    }
+
+    // Check if slots are available for a specific date and period
+    function checkSlotAvailability(date, period) {
+        const slots = getAvailableSlots();
+        if (!slots[date]) return 5; // Default to 5 slots if not set
+        return slots[date][period];
+    }
+
+    // Update time slot buttons based on availability
+    function updateTimeSlotAvailability(date) {
+        const timeSlots = document.querySelectorAll('.time-slot');
+        const morningSlots = checkSlotAvailability(date, 'morning');
+        const afternoonSlots = checkSlotAvailability(date, 'afternoon');
+
+        // Morning slot (first button)
+        if (morningSlots <= 0) {
+            timeSlots[0].disabled = true;
+            timeSlots[0].classList.add('disabled');
+            timeSlots[0].innerHTML = currentLang === 'en' ? 
+                'Morning (Fully Booked)' : 
+                '上午 (已满)';
+        } else {
+            timeSlots[0].disabled = false;
+            timeSlots[0].classList.remove('disabled');
+            timeSlots[0].innerHTML = translations.timeSlots[currentLang].morning;
+        }
+
+        // Afternoon slot (second button)
+        if (afternoonSlots <= 0) {
+            timeSlots[1].disabled = true;
+            timeSlots[1].classList.add('disabled');
+            timeSlots[1].innerHTML = currentLang === 'en' ? 
+                'Afternoon (Fully Booked)' : 
+                '下午 (已满)';
+        } else {
+            timeSlots[1].disabled = false;
+            timeSlots[1].classList.remove('disabled');
+            timeSlots[1].innerHTML = translations.timeSlots[currentLang].afternoon;
+        }
+    }
+
     function updateCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -84,9 +129,15 @@ document.addEventListener('DOMContentLoaded', function() {
             dayDiv.textContent = day;
             
             const currentDay = new Date(year, month, day);
+            const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             
-            // Disable past dates
-            if (currentDay < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+            // Check slot availability
+            const morningSlots = checkSlotAvailability(dateStr, 'morning');
+            const afternoonSlots = checkSlotAvailability(dateStr, 'afternoon');
+            
+            // Disable past dates and fully booked dates
+            if (currentDay < new Date(today.getFullYear(), today.getMonth(), today.getDate()) ||
+                (morningSlots <= 0 && afternoonSlots <= 0)) {
                 dayDiv.classList.add('disabled');
             } else {
                 // Check if this is today
@@ -100,7 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Remove previous selection
                         document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
                         this.classList.add('selected');
-                        selectedDate = new Date(year, month, day);
+                        selectedDate = dateStr;
+                        
+                        // Update time slot availability
+                        updateTimeSlotAvailability(dateStr);
                         timeSlotContainer.style.display = 'block';
                     }
                 });
@@ -239,4 +293,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Add CSS for disabled time slots
+    const style = document.createElement('style');
+    style.textContent = `
+        .time-slot.disabled {
+            background: var(--gray-200);
+            color: var(--gray-600);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .time-slot.disabled:hover {
+            background: var(--gray-200);
+            transform: none;
+        }
+    `;
+    document.head.appendChild(style);
 }); 

@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedDateElement = document.getElementById('selectedDate');
 
     // Sample data structure for available slots
-    let availableSlots = {};
+    let availableSlots = JSON.parse(localStorage.getItem('availableSlots')) || {};
 
     function updateCalendar() {
         const year = currentDate.getFullYear();
@@ -116,6 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 availableSlots[selectedDate] = { morning: 5, afternoon: 5 };
             }
             availableSlots[selectedDate][period] = parseInt(slots);
+
+            // Save to localStorage
+            localStorage.setItem('availableSlots', JSON.stringify(availableSlots));
 
             // Update calendar display
             updateCalendar();
