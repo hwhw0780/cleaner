@@ -126,18 +126,50 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let day = 1; day <= totalDays; day++) {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'calendar-day';
-            dayDiv.textContent = day;
             
             const currentDay = new Date(year, month, day);
             const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             
-            // Check slot availability
-            const morningSlots = checkSlotAvailability(dateStr, 'morning');
-            const afternoonSlots = checkSlotAvailability(dateStr, 'afternoon');
+            // Create day number element
+            const dayNumber = document.createElement('span');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day;
+            dayDiv.appendChild(dayNumber);
             
-            // Disable past dates and fully booked dates
-            if (currentDay < new Date(today.getFullYear(), today.getMonth(), today.getDate()) ||
-                (morningSlots <= 0 && afternoonSlots <= 0)) {
+            // Create slots info container
+            const slotsInfo = document.createElement('div');
+            slotsInfo.className = 'slots-info';
+            
+            // Add morning and afternoon slots
+            const morningSlots = document.createElement('div');
+            morningSlots.className = 'morning-slots';
+            const afternoonSlots = document.createElement('div');
+            afternoonSlots.className = 'afternoon-slots';
+            
+            // Get slot availability
+            fetch(`/api/slots/${dateStr}`)
+                .then(response => response.json())
+                .then(slots => {
+                    morningSlots.textContent = `${slots.morning || 5}`;
+                    afternoonSlots.textContent = `${slots.afternoon || 5}`;
+                    
+                    // Disable if both slots are 0
+                    if ((slots.morning || 5) <= 0 && (slots.afternoon || 5) <= 0) {
+                        dayDiv.classList.add('disabled');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching slots:', error);
+                    morningSlots.textContent = '5';
+                    afternoonSlots.textContent = '5';
+                });
+            
+            slotsInfo.appendChild(morningSlots);
+            slotsInfo.appendChild(afternoonSlots);
+            dayDiv.appendChild(slotsInfo);
+            
+            // Disable past dates
+            if (currentDay < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
                 dayDiv.classList.add('disabled');
             } else {
                 // Check if this is today
