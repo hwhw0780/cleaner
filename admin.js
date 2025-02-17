@@ -56,10 +56,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add days of month
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+        
+        // Calculate the maximum booking date (50 days from today)
+        const maxBookingDate = new Date(today);
+        maxBookingDate.setDate(today.getDate() + 50);
+        maxBookingDate.setHours(0, 0, 0, 0);
+        
         for (let day = 1; day <= totalDays; day++) {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'calendar-day';
             
+            const currentDay = new Date(year, month, day);
+            currentDay.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
             const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             
             // Create initial structure
@@ -71,44 +80,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
-            const currentDay = new Date(year, month, day);
-            
-            // Update fetch slots section
-            fetch(`/api/slots/${dateStr}`)
-                .then(response => response.json())
-                .then(slots => {
-                    const slotsInfo = dayDiv.querySelector('.slots-info');
-                    const morning = slots.morning ?? 5;
-                    const afternoon = slots.afternoon ?? 5;
-                    
-                    const morningClass = getSlotClass(morning);
-                    const afternoonClass = getSlotClass(afternoon);
-                    
-                    slotsInfo.innerHTML = `
-                        <small class="${morningClass}">M: ${morning}</small>
-                        <small class="${afternoonClass}">A: ${afternoon}</small>
-                    `;
-                    
-                    // Disable if both slots are 0
-                    if (morning <= 0 && afternoon <= 0) {
-                        dayDiv.classList.add('disabled');
-                    } else {
-                        dayDiv.classList.remove('disabled');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching slots:', error);
-                    const slotsInfo = dayDiv.querySelector('.slots-info');
-                    slotsInfo.innerHTML = `
-                        <small class="slots-high">M: 5</small>
-                        <small class="slots-high">A: 5</small>
-                    `;
-                });
-            
-            // Disable past dates
-            if (currentDay < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+            // Handle past dates and dates beyond 50 days
+            if (currentDay < today || currentDay > maxBookingDate) {
                 dayDiv.classList.add('disabled');
+                const slotsInfo = dayDiv.querySelector('.slots-info');
+                slotsInfo.innerHTML = `
+                    <small class="slots-none">M: 0</small>
+                    <small class="slots-none">A: 0</small>
+                `;
             } else {
+                // Update fetch slots section for valid dates
+                fetch(`/api/slots/${dateStr}`)
+                    .then(response => response.json())
+                    .then(slots => {
+                        const slotsInfo = dayDiv.querySelector('.slots-info');
+                        const morning = slots.morning ?? 5;
+                        const afternoon = slots.afternoon ?? 5;
+                        
+                        const morningClass = getSlotClass(morning);
+                        const afternoonClass = getSlotClass(afternoon);
+                        
+                        slotsInfo.innerHTML = `
+                            <small class="${morningClass}">M: ${morning}</small>
+                            <small class="${afternoonClass}">A: ${afternoon}</small>
+                        `;
+                        
+                        // Disable if both slots are 0
+                        if (morning <= 0 && afternoon <= 0) {
+                            dayDiv.classList.add('disabled');
+                        } else {
+                            dayDiv.classList.remove('disabled');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching slots:', error);
+                        const slotsInfo = dayDiv.querySelector('.slots-info');
+                        slotsInfo.innerHTML = `
+                            <small class="slots-high">M: 5</small>
+                            <small class="slots-high">A: 5</small>
+                        `;
+                    });
+                
+                // Add click handler for valid dates
                 dayDiv.addEventListener('click', function() {
                     if (!this.classList.contains('disabled')) {
                         // Remove previous selection

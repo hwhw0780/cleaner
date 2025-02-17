@@ -124,11 +124,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add days of month
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+        
+        // Calculate the maximum booking date (50 days from today)
+        const maxBookingDate = new Date(today);
+        maxBookingDate.setDate(today.getDate() + 50);
+        maxBookingDate.setHours(0, 0, 0, 0);
+        
         for (let day = 1; day <= totalDays; day++) {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'calendar-day';
             
             const currentDay = new Date(year, month, day);
+            currentDay.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
             const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             
             // Create day number element
@@ -147,23 +155,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const afternoonSlots = document.createElement('div');
             afternoonSlots.className = 'afternoon-slots';
             
-            // Fetch and update slot availability
-            fetchSlots(dateStr, dayDiv, morningSlots, afternoonSlots);
+            // Disable past dates and dates beyond 50 days
+            if (currentDay < today || currentDay > maxBookingDate) {
+                dayDiv.classList.add('disabled');
+                morningSlots.className = 'morning-slots slots-none';
+                afternoonSlots.className = 'afternoon-slots slots-none';
+                morningSlots.textContent = '0';
+                afternoonSlots.textContent = '0';
+            } else {
+                // Fetch and update slot availability for valid dates
+                fetchSlots(dateStr, dayDiv, morningSlots, afternoonSlots);
+            }
             
             slotsInfo.appendChild(morningSlots);
             slotsInfo.appendChild(afternoonSlots);
             dayDiv.appendChild(slotsInfo);
             
-            // Disable past dates
-            if (currentDay < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
-                dayDiv.classList.add('disabled');
-            } else {
-                // Check if this is today
-                if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
-                    dayDiv.classList.add('today');
-                }
-                
-                // Add click handler for future dates
+            // Add click handler only for valid dates
+            if (currentDay >= today && currentDay <= maxBookingDate) {
                 dayDiv.addEventListener('click', function() {
                     if (!this.classList.contains('disabled')) {
                         // Remove previous selection
@@ -317,10 +326,57 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Form submission
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        // Add your form submission logic here
-        alert('Booking submitted successfully!');
+        
+        // Get form data
+        const formData = {
+            date: selectedDate,
+            time_period: document.querySelector('.time-slot.selected').textContent.toLowerCase().includes('morning') ? 'morning' : 'afternoon',
+            client_name: document.getElementById('name').value,
+            service_type: document.querySelector('input[name="serviceType"]:checked').value,
+            contact: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+            address: document.getElementById('address').value
+        };
+
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to create booking');
+            }
+
+            // Show success message with email status
+            const message = currentLang === 'en' ?
+                `Booking submitted successfully!\n${result.emailSent ? 'A confirmation email has been sent to your email address.' : 'Could not send confirmation email. Please check your email address.'}` :
+                `预约提交成功！\n${result.emailSent ? '确认邮件已发送到您的邮箱。' : '无法发送确认邮件。请检查您的邮箱地址。'}`;
+            
+            alert(message);
+
+            // Reset form and calendar selection
+            this.reset();
+            bookingFormContainer.style.display = 'none';
+            timeSlotContainer.style.display = 'none';
+            selectedDate = null;
+            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+            
+            // Refresh calendar to update slot availability
+            updateCalendar();
+        } catch (error) {
+            console.error('Error submitting booking:', error);
+            alert(currentLang === 'en' ? 
+                'Error submitting booking. Please try again.' : 
+                '提交预约时出错。请重试。');
+        }
     });
 
     // Initialize calendar
