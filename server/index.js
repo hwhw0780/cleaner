@@ -7,6 +7,17 @@ const { sendConfirmationEmail } = require('./emailService');
 const app = express();
 const port = process.env.PORT || 3001;
 
+// Check environment variables at startup
+console.log('Checking environment configuration...');
+const requiredEnvVars = ['DATABASE_URL', 'EMAIL_USER', 'EMAIL_PASS'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingVars.length > 0) {
+    console.error('Missing required environment variables:', missingVars);
+} else {
+    console.log('All required environment variables are set');
+    console.log('Email configured for:', process.env.EMAIL_USER);
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());

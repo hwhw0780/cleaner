@@ -9,6 +9,15 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Verify transporter configuration at startup
+transporter.verify(function(error, success) {
+    if (error) {
+        console.error('Email configuration error:', error);
+    } else {
+        console.log('Email server is ready to send messages');
+    }
+});
+
 // Function to send confirmation email
 async function sendConfirmationEmail(booking) {
     const { email, clientName, date, time_period, service_type, address } = booking;
@@ -56,11 +65,17 @@ async function sendConfirmationEmail(booking) {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
-        console.log('Confirmation email sent successfully');
+        console.log('Attempting to send email to:', email);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully:', info.messageId);
         return true;
     } catch (error) {
         console.error('Error sending confirmation email:', error);
+        console.error('Email configuration:', {
+            from: process.env.EMAIL_USER,
+            auth: process.env.EMAIL_USER ? 'configured' : 'missing',
+            pass: process.env.EMAIL_PASS ? 'configured' : 'missing'
+        });
         return false;
     }
 }
