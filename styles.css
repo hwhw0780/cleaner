@@ -1850,4 +1850,143 @@ section {
     .coverage-content li {
         font-size: var(--text-sm);
     }
+}
+
+/* Payment Options Styling */
+.payment-options {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.payment-option {
+    flex: 1;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.payment-option input[type="radio"] {
+    display: none;
+}
+
+.payment-option label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.payment-option.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.payment-option.selected label {
+    color: var(--white);
+}
+
+/* Payment Information Styling */
+.payment-info {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.info-message {
+    text-align: center;
+    color: var(--gray-800);
+    font-weight: 500;
+}
+
+.payment-methods {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.payment-method {
+    text-align: center;
+}
+
+.payment-method h4 {
+    margin-bottom: 1rem;
+    color: var(--gray-800);
+    font-weight: 600;
+}
+
+.qr-container {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.qr-code {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+}
+
+.bank-details {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.account-number {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0.5rem 0;
+}
+
+.copy-btn {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background: var(--primary-dark);
+}
+
+@media (max-width: 768px) {
+    .payment-methods {
+        grid-template-columns: 1fr;
+    }
+    
+    .payment-options {
+        flex-direction: column;
+    }
+    
+    .payment-option {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .payment-options {
+        flex-direction: column;
+    }
+    
+    .payment-option {
+        width: 100%;
+    }
 } 

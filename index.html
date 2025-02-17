@@ -326,6 +326,45 @@
                             <textarea id="address" name="address" required></textarea>
                         </div>
 
+                        <div class="form-group">
+                            <label for="payment">Payment Method</label>
+                            <div class="payment-options">
+                                <div class="payment-option">
+                                    <input type="radio" id="cash" name="paymentMethod" value="cash" required>
+                                    <label for="cash">Pay by Cash</label>
+                                </div>
+                                <div class="payment-option">
+                                    <input type="radio" id="online" name="paymentMethod" value="online" required>
+                                    <label for="online">Pay Online</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="cashMessage" class="payment-info" style="display: none;">
+                            <div class="info-message">
+                                <p>Our customer service will contact you soon to arrange the payment.</p>
+                            </div>
+                        </div>
+
+                        <div id="onlinePayment" class="payment-info" style="display: none;">
+                            <div class="payment-methods">
+                                <div class="payment-method">
+                                    <h4>Pay by TNG:</h4>
+                                    <div class="qr-container">
+                                        <img src="./images/Qr.png" alt="TNG QR Code" class="qr-code">
+                                    </div>
+                                </div>
+                                <div class="payment-method">
+                                    <h4>Pay by Bank:</h4>
+                                    <div class="bank-details">
+                                        <p>Hong Leong Bank</p>
+                                        <p class="account-number">3213211231</p>
+                                        <button class="copy-btn" onclick="copyToClipboard('3213211231')">Copy Account Number</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-buttons">
                             <button type="button" class="back-btn">Back</button>
                             <button type="submit" class="submit-btn">Confirm Booking</button>

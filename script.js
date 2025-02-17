@@ -466,4 +466,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     `;
     document.head.appendChild(style);
+
+    // Payment method selection handling
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+    const cashMessage = document.getElementById('cashMessage');
+    const onlinePayment = document.getElementById('onlinePayment');
+
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove selected class from all options
+            paymentOptions.forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selected class to the parent of the checked radio
+            if (this.checked) {
+                this.closest('.payment-option').classList.add('selected');
+                
+                // Show/hide appropriate payment information
+                if (this.value === 'cash') {
+                    cashMessage.style.display = 'block';
+                    onlinePayment.style.display = 'none';
+                } else {
+                    cashMessage.style.display = 'none';
+                    onlinePayment.style.display = 'block';
+                }
+            }
+        });
+    });
+
+    // Copy account number function
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+
+    // Make the copyToClipboard function globally available
+    window.copyToClipboard = copyToClipboard;
 }); 
