@@ -734,7 +734,7 @@ section {
     top: 1.5rem;
     left: 0;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
 }
 
 .slots-info .morning-slots,
@@ -750,7 +750,7 @@ section {
 
 .slots-info .morning-slots {
     background: rgba(74, 144, 226, 0.1);
-    border-bottom: 1px dashed var(--gray-200);
+    border-right: 1px dashed var(--gray-200);
 }
 
 .slots-info .afternoon-slots {
