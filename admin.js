@@ -24,9 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const slotManagement = document.getElementById('slotManagement');
     const selectedDateElement = document.getElementById('selectedDate');
 
-    // Sample data structure for available slots
-    let availableSlots = JSON.parse(localStorage.getItem('availableSlots')) || {};
-
     function updateCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -56,17 +53,36 @@ document.addEventListener('DOMContentLoaded', function() {
             dayDiv.className = 'calendar-day';
             
             const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            const slots = availableSlots[dateStr] || { morning: 5, afternoon: 5 };
             
+            // Create initial structure
             dayDiv.innerHTML = `
                 <span class="day-number">${day}</span>
                 <div class="slots-info">
-                    <small>M: ${slots.morning}</small>
-                    <small>A: ${slots.afternoon}</small>
+                    <small>M: ...</small>
+                    <small>A: ...</small>
                 </div>
             `;
             
             const currentDay = new Date(year, month, day);
+            
+            // Fetch slots for this date
+            fetch(`/api/slots/${dateStr}`)
+                .then(response => response.json())
+                .then(slots => {
+                    const slotsInfo = dayDiv.querySelector('.slots-info');
+                    slotsInfo.innerHTML = `
+                        <small>M: ${slots.morning}</small>
+                        <small>A: ${slots.afternoon}</small>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error fetching slots:', error);
+                    const slotsInfo = dayDiv.querySelector('.slots-info');
+                    slotsInfo.innerHTML = `
+                        <small>M: 5</small>
+                        <small>A: 5</small>
+                    `;
+                });
             
             // Disable past dates
             if (currentDay < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
@@ -79,11 +95,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         this.classList.add('selected');
                         selectedDate = dateStr;
                         
-                        // Show slot management panel
+                        // Show slot management panel and fetch current slots
                         selectedDateElement.textContent = dateStr;
-                        document.getElementById('morningSlots').value = slots.morning;
-                        document.getElementById('afternoonSlots').value = slots.afternoon;
-                        slotManagement.style.display = 'block';
+                        fetch(`/api/slots/${dateStr}`)
+                            .then(response => response.json())
+                            .then(slots => {
+                                document.getElementById('morningSlots').value = slots.morning;
+                                document.getElementById('afternoonSlots').value = slots.afternoon;
+                                slotManagement.style.display = 'block';
+                            })
+                            .catch(error => {
+                                console.error('Error fetching slots:', error);
+                                document.getElementById('morningSlots').value = 5;
+                                document.getElementById('afternoonSlots').value = 5;
+                                slotManagement.style.display = 'block';
+                            });
                     }
                 });
             }
@@ -108,23 +134,27 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             if (!selectedDate) return;
 
-            const period = this.dataset.period;
-            const slots = document.getElementById(`${period}Slots`).value;
+            const morning = parseInt(document.getElementById('morningSlots').value);
+            const afternoon = parseInt(document.getElementById('afternoonSlots').value);
 
-            // Update available slots
-            if (!availableSlots[selectedDate]) {
-                availableSlots[selectedDate] = { morning: 5, afternoon: 5 };
-            }
-            availableSlots[selectedDate][period] = parseInt(slots);
-
-            // Save to localStorage
-            localStorage.setItem('availableSlots', JSON.stringify(availableSlots));
-
-            // Update calendar display
-            updateCalendar();
-
-            // Show success message
-            alert(`Slots updated for ${selectedDate}`);
+            // Update slots using API
+            fetch(`/api/slots/${selectedDate}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ morning, afternoon })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update calendar display
+                updateCalendar();
+                alert(`Slots updated for ${selectedDate}`);
+            })
+            .catch(error => {
+                console.error('Error updating slots:', error);
+                alert('Error updating slots. Please try again.');
+            });
         });
     });
 

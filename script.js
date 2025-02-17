@@ -56,23 +56,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Get available slots from localStorage
-    function getAvailableSlots() {
-        return JSON.parse(localStorage.getItem('availableSlots')) || {};
-    }
-
-    // Check if slots are available for a specific date and period
-    function checkSlotAvailability(date, period) {
-        const slots = getAvailableSlots();
-        if (!slots[date]) return 5; // Default to 5 slots if not set
-        return slots[date][period];
-    }
-
     // Get slot availability
     function fetchSlots(dateStr, dayDiv, morningSlots, afternoonSlots) {
         fetch(`/api/slots/${dateStr}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(slots => {
+                // Use nullish coalescing to handle undefined values
                 const morning = slots.morning ?? 5;
                 const afternoon = slots.afternoon ?? 5;
                 
@@ -82,12 +76,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Disable if both slots are 0
                 if (morning <= 0 && afternoon <= 0) {
                     dayDiv.classList.add('disabled');
+                } else {
+                    dayDiv.classList.remove('disabled');
                 }
             })
             .catch(error => {
                 console.error('Error fetching slots:', error);
                 morningSlots.textContent = '5';
                 afternoonSlots.textContent = '5';
+                dayDiv.classList.remove('disabled');
             });
     }
 
