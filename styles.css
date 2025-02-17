@@ -1349,36 +1349,36 @@ section {
 
 /* Service Type Options */
 .service-type-options {
-    display: flex;
-    gap: 1.5rem;
-    margin-top: 0.5rem;
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .service-option {
-    flex: 1;
-    background: var(--white);
+    position: relative;
     border: 2px solid var(--gray-200);
     border-radius: var(--radius-md);
-    padding: 1.5rem;
+    padding: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .service-option:hover {
     border-color: var(--primary);
-    background: var(--primary-light);
+    background-color: var(--primary-light);
 }
 
 .service-option input[type="radio"] {
-    display: none;
+    position: absolute;
+    opacity: 0;
 }
 
 .service-option input[type="radio"]:checked + label {
-    color: var(--primary);
+    color: var(--white);
 }
 
 .service-option input[type="radio"]:checked + label .price {
-    color: var(--primary);
+    color: var(--white);
 }
 
 .service-option label {
@@ -1386,26 +1386,91 @@ section {
     flex-direction: column;
     gap: 0.5rem;
     cursor: pointer;
+    transition: color 0.3s ease;
 }
 
 .service-option label strong {
-    font-size: var(--text-lg);
-    color: var(--gray-800);
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .service-option label .price {
-    font-size: var(--text-base);
+    font-size: 0.9rem;
     color: var(--gray-600);
+    transition: color 0.3s ease;
+}
+
+/* Add this new style for the selected state */
+.service-option input[type="radio"]:checked + label {
+    color: var(--white);
 }
 
 .service-option input[type="radio"]:checked + label strong {
-    color: var(--primary);
+    color: var(--white);
 }
 
-@media (max-width: 768px) {
-    .service-type-options {
-        flex-direction: column;
+/* Add this important new style */
+.service-option input[type="radio"]:checked {
+    background-color: var(--primary);
+}
+
+.service-option input[type="radio"]:checked + label {
+    color: var(--white);
+}
+
+/* This is the key new style */
+.service-option input[type="radio"]:checked ~ label,
+.service-option input[type="radio"]:checked + label {
+    color: var(--white);
+}
+
+.service-option input[type="radio"]:checked + label .price {
+    color: var(--white);
+}
+
+/* This is the most important addition */
+.service-option input[type="radio"]:checked ~ label,
+.service-option input[type="radio"]:checked + label,
+.service-option input[type="radio"]:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+}
+
+/* Make the entire box change color when selected */
+.service-option input[type="radio"]:checked ~ *,
+.service-option input[type="radio"]:checked + * {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+}
+
+/* Make the entire service option change color when selected */
+.service-option input[type="radio"]:checked {
+    ~ * {
+        background-color: var(--primary);
+        border-color: var(--primary);
+        color: var(--white);
     }
+}
+
+/* Add this to ensure the entire box changes color */
+.service-option {
+    position: relative;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: transparent;
+}
+
+.service-option input[type="radio"]:checked ~ .service-option,
+.service-option input[type="radio"]:checked + .service-option,
+.service-option:has(input[type="radio"]:checked) {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
 }
 
 .banner-cta {
@@ -1601,12 +1666,12 @@ section {
     }
 
     .service-type-options {
-        flex-direction: column;
+        grid-template-columns: 1fr;
         gap: 1rem;
     }
 
     .service-option {
-        padding: 1rem;
+        width: 100%;
     }
 }
 
