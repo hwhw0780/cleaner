@@ -144,6 +144,120 @@ body {
     }
 }
 
+/* Banner Content */
+.banner-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 13%;
+    align-items: flex-start;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+}
+
+.banner-logo {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    margin-bottom: 0;
+    z-index: 10;
+}
+
+.banner-logo img {
+    width: 150px;
+    height: auto;
+    border-radius: var(--radius-md);
+}
+
+.banner-text {
+    color: var(--white);
+    max-width: 600px;
+    margin-top: 0;
+}
+
+.banner-text h1 {
+    font-family: var(--font-secondary);
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: var(--leading-tight);
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.banner-text h2 {
+    font-family: var(--font-secondary);
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--primary-light);
+    animation: fadeInUp 0.8s ease-out 0.2s forwards;
+    opacity: 0;
+}
+
+.banner-text p {
+    font-size: var(--text-lg);
+    line-height: var(--leading-relaxed);
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.4s forwards;
+}
+
+@media (max-width: 1024px) {
+    .banner-content {
+        width: 70%;
+    }
+    
+    .banner-text h1 {
+        font-size: var(--text-2xl);
+    }
+    
+    .banner-text h2 {
+        font-size: var(--text-xl);
+    }
+    
+    .banner-text p {
+        font-size: var(--text-base);
+    }
+}
+
+@media (max-width: 768px) {
+    .banner-content {
+        width: 100%;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
+    }
+    
+    .banner-logo img {
+        width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner-content {
+        padding: 1rem;
+    }
+    
+    .banner-logo img {
+        width: 100px;
+    }
+    
+    .banner-text h1 {
+        font-size: var(--text-xl);
+    }
+    
+    .banner-text h2 {
+        font-size: var(--text-lg);
+        margin-bottom: 1rem;
+    }
+    
+    .banner-text p {
+        font-size: var(--text-sm);
+    }
+}
+
 /* Vision & Mission Section */
 .vision-mission {
     padding: 6rem 0;
@@ -162,7 +276,8 @@ body {
     border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-lg);
-    height: 500px;
+    aspect-ratio: 3/4;
+    animation: scaleIn 1s ease-out forwards;
 }
 
 .vision-mission-image img {
@@ -190,10 +305,17 @@ body {
     color: var(--gray-800);
     margin-bottom: 2.5rem;
     line-height: var(--leading-tight);
+    animation: slideInLeft 0.8s ease-out forwards;
 }
 
 .vision-block, .mission-block {
     margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.mission-block {
+    animation-delay: 0.2s;
 }
 
 .vision-mission-text h3 {
@@ -266,7 +388,7 @@ body {
     }
     
     .vision-mission-image {
-        height: 400px;
+        aspect-ratio: 3/4;
         margin-bottom: 2rem;
     }
     
@@ -285,7 +407,7 @@ body {
     }
     
     .vision-mission-image {
-        height: 300px;
+        aspect-ratio: 3/4;
     }
     
     .vision-mission-text h2 {
@@ -344,6 +466,8 @@ section {
     overflow: hidden;
     transform: translateY(0);
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    opacity: 0;
+    animation: scaleIn 0.6s ease-out forwards;
 }
 
 .highlight-item:hover {
@@ -393,6 +517,8 @@ section {
     text-align: left;
     position: relative;
     overflow: hidden;
+    opacity: 0;
+    animation: fadeInUp 0.6s ease-out forwards;
 }
 
 .benefit-card::before {
@@ -862,6 +988,8 @@ section {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
+    opacity: 0;
+    animation: scaleIn 0.8s ease-out forwards;
 }
 
 .pricing-card:hover {
@@ -1127,4 +1255,158 @@ section {
     .service-type-options {
         flex-direction: column;
     }
+}
+
+.banner-cta {
+    display: inline-block;
+    background: var(--primary);
+    color: var(--white);
+    padding: 1rem 2.5rem;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--text-lg);
+    margin-top: 2rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: var(--shadow-md);
+    animation: fadeInUp 0.8s ease-out 0.6s forwards;
+    opacity: 0;
+}
+
+.banner-cta:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+    .banner-cta {
+        padding: 0.875rem 2rem;
+        font-size: var(--text-base);
+        margin-top: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner-cta {
+        padding: 0.75rem 1.75rem;
+        font-size: var(--text-sm);
+        margin-top: 1.25rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Vision & Mission animations */
+.vision-mission-image {
+    animation: scaleIn 1s ease-out forwards;
+}
+
+.vision-mission-text h2 {
+    animation: slideInLeft 0.8s ease-out forwards;
+}
+
+.vision-block, .mission-block {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.mission-block {
+    animation-delay: 0.2s;
+}
+
+/* Service card animations */
+.highlight-item:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.highlight-item:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* Benefit card animations */
+.benefit-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.benefit-card:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.benefit-card:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+/* Pricing card animations */
+.pricing-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+/* Add smooth transitions for interactive elements */
+.highlight-item:hover img {
+    transform: scale(1.05);
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.benefit-card {
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Add intersection observer classes */
+.fade-in {
+    opacity: 0;
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
 } 
