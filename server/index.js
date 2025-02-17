@@ -57,27 +57,38 @@ const initializeDatabase = async () => {
 // Initialize database when server starts
 initializeDatabase();
 
-// Routes
+// API Routes
 
 // Get available slots for a specific date
 app.get('/api/slots/:date', async (req, res) => {
     try {
         const { date } = req.params;
         const result = await db.query(
-            'SELECT * FROM available_slots WHERE date = $1',
+            'SELECT period, slots_available FROM available_slots WHERE date = $1',
             [date]
         );
         
+        // If no slots are set for this date, return default values
         if (result.rows.length === 0) {
-            // If no slots are set, return default values
-            res.json([
-                { period: 'morning', slots_available: 5 },
-                { period: 'afternoon', slots_available: 5 }
-            ]);
+            res.json({
+                morning: 5,
+                afternoon: 5
+            });
         } else {
-            res.json(result.rows);
+            // Convert array of rows to object format
+            const slots = result.rows.reduce((acc, row) => {
+                acc[row.period] = row.slots_available;
+                return acc;
+            }, {});
+            
+            // Ensure both periods are included
+            if (!slots.morning) slots.morning = 5;
+            if (!slots.afternoon) slots.afternoon = 5;
+            
+            res.json(slots);
         }
     } catch (error) {
+        console.error('Error fetching slots:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -106,6 +117,7 @@ app.put('/api/slots/:date', async (req, res) => {
 
         res.json({ message: 'Slots updated successfully' });
     } catch (error) {
+        console.error('Error updating slots:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -147,6 +159,7 @@ app.post('/api/bookings', async (req, res) => {
 
         res.status(201).json(result.rows[0]);
     } catch (error) {
+        console.error('Error creating booking:', error);
         res.status(500).json({ error: error.message });
     }
 });
