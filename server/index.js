@@ -161,21 +161,13 @@ app.post('/api/bookings', async (req, res) => {
             RETURNING *
         `, [date, time_period, client_name, service_type, contact, email, address]);
 
-        // Decrease available slots
-        if (slotsResult.rows.length === 0) {
-            // If no slots record exists, create one with (default - 1) slots
-            await db.query(`
-                INSERT INTO available_slots (date, period, slots_available)
-                VALUES ($1, $2, $3)
-            `, [date, time_period, 4]); // 5 - 1 = 4
-        } else {
-            // Update existing slots record
-            await db.query(`
-                UPDATE available_slots 
-                SET slots_available = slots_available - 1
-                WHERE date = $1 AND period = $2
-            `, [date, time_period]);
-        }
+        // Update available slots
+        await db.query(`
+            INSERT INTO available_slots (date, period, slots_available)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (date, period)
+            DO UPDATE SET slots_available = GREATEST(0, available_slots.slots_available - 1)
+        `, [date, time_period, 4]); // Default is 5-1=4 for new records
 
         // Send confirmation email
         const booking = result.rows[0];
