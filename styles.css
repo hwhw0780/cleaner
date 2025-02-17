@@ -1719,4 +1719,135 @@ section {
         font-size: var(--text-xs);
         padding: 0.2rem 0.4rem;
     }
+}
+
+/* Services Coverage Section */
+.services-coverage {
+    background: var(--white);
+    padding: 6rem 0;
+}
+
+.coverage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem;
+    margin-top: 3rem;
+}
+
+.coverage-item {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    animation: scaleIn 0.8s ease-out forwards;
+}
+
+.coverage-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.coverage-image {
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+}
+
+.coverage-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.coverage-item:hover .coverage-image img {
+    transform: scale(1.05);
+}
+
+.coverage-content {
+    padding: 2rem;
+}
+
+.coverage-content h3 {
+    font-family: var(--font-secondary);
+    font-size: var(--text-2xl);
+    color: var(--gray-800);
+    margin-bottom: 1.5rem;
+}
+
+.coverage-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.coverage-content li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--gray-600);
+    line-height: var(--leading-relaxed);
+}
+
+.coverage-content li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* Animation delay for coverage items */
+.coverage-item:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.coverage-item:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+.coverage-item:nth-child(4) {
+    animation-delay: 0.6s;
+}
+
+/* Responsive design for coverage section */
+@media (max-width: 1024px) {
+    .coverage-grid {
+        gap: 2rem;
+    }
+    
+    .coverage-image {
+        height: 250px;
+    }
+    
+    .coverage-content h3 {
+        font-size: var(--text-xl);
+    }
+}
+
+@media (max-width: 768px) {
+    .coverage-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 0 1rem;
+    }
+    
+    .coverage-image {
+        height: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .coverage-content {
+        padding: 1.5rem;
+    }
+    
+    .coverage-content h3 {
+        font-size: var(--text-lg);
+    }
+    
+    .coverage-content li {
+        font-size: var(--text-sm);
+    }
 } 
