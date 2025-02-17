@@ -3,6 +3,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const languageButtons = document.querySelectorAll('.language-btn');
     let currentLang = 'en';
 
+    const translations = {
+        months: {
+            en: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+            cn: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+        },
+        weekdays: {
+            en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+            cn: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+        },
+        timeSlots: {
+            en: {
+                morning: "Morning (8:00 AM - 12:00 PM)",
+                afternoon: "Afternoon (1:00 PM - 5:00 PM)"
+            },
+            cn: {
+                morning: "上午 (8:00 - 12:00)",
+                afternoon: "下午 (13:00 - 17:00)"
+            }
+        },
+        form: {
+            en: {
+                selectTime: "Select Time",
+                serviceType: "Select Service Type",
+                fullName: "Full Name",
+                phone: "Phone Number",
+                email: "Email Address",
+                address: "Service Address",
+                back: "Back",
+                confirm: "Confirm Booking"
+            },
+            cn: {
+                selectTime: "选择时间",
+                serviceType: "选择服务类型",
+                fullName: "姓名",
+                phone: "电话号码",
+                email: "电子邮件",
+                address: "服务地址",
+                back: "返回",
+                confirm: "确认预约"
+            }
+        }
+    };
+
     function switchLanguage(lang) {
         currentLang = lang;
         // Update active button state
@@ -14,6 +57,29 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('[data-' + lang + ']').forEach(element => {
             element.textContent = element.dataset[lang];
         });
+
+        // Update calendar weekdays
+        document.querySelectorAll('.weekdays div').forEach((div, index) => {
+            div.textContent = translations.weekdays[lang][index];
+        });
+
+        // Update time slots
+        const timeSlots = document.querySelectorAll('.time-slot');
+        timeSlots[0].textContent = translations.timeSlots[lang].morning;
+        timeSlots[1].textContent = translations.timeSlots[lang].afternoon;
+
+        // Update form labels
+        document.querySelector('label[for="serviceType"]').textContent = translations.form[lang].serviceType;
+        document.querySelector('label[for="name"]').textContent = translations.form[lang].fullName;
+        document.querySelector('label[for="phone"]').textContent = translations.form[lang].phone;
+        document.querySelector('label[for="email"]').textContent = translations.form[lang].email;
+        document.querySelector('label[for="address"]').textContent = translations.form[lang].address;
+        document.querySelector('.back-btn').textContent = translations.form[lang].back;
+        document.querySelector('.submit-btn').textContent = translations.form[lang].confirm;
+        document.querySelector('#timeSlotContainer h3').textContent = translations.form[lang].selectTime;
+
+        // Update current month display
+        updateCalendar();
 
         // Store language preference
         localStorage.setItem('preferredLanguage', lang);
@@ -48,10 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         
-        // Update month display
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"];
-        currentMonthElement.textContent = `${monthNames[month]} ${year}`;
+        // Update month display using translations
+        currentMonthElement.textContent = `${translations.months[currentLang][month]} ${year}`;
         
         // Get first day of month and total days
         const firstDay = new Date(year, month, 1).getDay();
