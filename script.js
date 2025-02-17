@@ -329,16 +329,44 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('bookingForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Validate service type
+        const serviceType = document.querySelector('input[name="serviceType"]:checked');
+        if (!serviceType) {
+            alert(currentLang === 'en' ? 
+                'Please select a service type.' : 
+                '请选择服务类型。');
+            return;
+        }
+
+        // Get selected time slot
+        const selectedTimeSlot = document.querySelector('.time-slot.selected');
+        if (!selectedTimeSlot) {
+            alert(currentLang === 'en' ? 
+                'Please select a time slot.' : 
+                '请选择时间段。');
+            return;
+        }
+
         // Get form data
         const formData = {
             date: selectedDate,
-            time_period: document.querySelector('.time-slot.selected').textContent.toLowerCase().includes('morning') ? 'morning' : 'afternoon',
-            client_name: document.getElementById('name').value,
-            service_type: document.querySelector('input[name="serviceType"]:checked').value,
-            contact: document.getElementById('phone').value,
-            email: document.getElementById('email').value,
-            address: document.getElementById('address').value
+            time_period: selectedTimeSlot.textContent.toLowerCase().includes('morning') ? 'morning' : 'afternoon',
+            client_name: document.getElementById('name').value.trim(),
+            service_type: serviceType.value,
+            contact: document.getElementById('phone').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            address: document.getElementById('address').value.trim()
         };
+
+        // Validate all fields are filled
+        for (const [key, value] of Object.entries(formData)) {
+            if (!value) {
+                alert(currentLang === 'en' ? 
+                    `Please fill in ${key.replace('_', ' ')}` : 
+                    `请填写${key.replace('_', ' ')}`);
+                return;
+            }
+        }
 
         try {
             const response = await fetch('/api/bookings', {
@@ -373,9 +401,14 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCalendar();
         } catch (error) {
             console.error('Error submitting booking:', error);
-            alert(currentLang === 'en' ? 
-                'Error submitting booking. Please try again.' : 
-                '提交预约时出错。请重试。');
+            const errorMessage = error.message.includes('bookings_service_type_check') ?
+                (currentLang === 'en' ? 
+                    'Invalid service type. Please select either Weekly/Fortnightly or One-off.' :
+                    '服务类型无效。请选择每周/每两周或单次服务。') :
+                (currentLang === 'en' ? 
+                    'Error submitting booking. Please try again.' : 
+                    '提交预约时出错。请重试。');
+            alert(errorMessage);
         }
     });
 
