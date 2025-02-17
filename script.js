@@ -71,34 +71,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update time slot buttons based on availability
     function updateTimeSlotAvailability(date) {
         const timeSlots = document.querySelectorAll('.time-slot');
-        const morningSlots = checkSlotAvailability(date, 'morning');
-        const afternoonSlots = checkSlotAvailability(date, 'afternoon');
+        
+        fetch(`/api/slots/${date}`)
+            .then(response => response.json())
+            .then(slots => {
+                // Morning slot (first button)
+                if (slots.morning <= 0) {
+                    timeSlots[0].disabled = true;
+                    timeSlots[0].classList.add('disabled');
+                    timeSlots[0].innerHTML = currentLang === 'en' ? 
+                        'Morning (Fully Booked)' : 
+                        '上午 (已满)';
+                } else {
+                    timeSlots[0].disabled = false;
+                    timeSlots[0].classList.remove('disabled');
+                    timeSlots[0].innerHTML = currentLang === 'en' ? 
+                        `Morning (8:00 AM - 12:00 PM) - ${slots.morning} slots left` : 
+                        `上午 (8:00 - 12:00) - 剩余 ${slots.morning} 个名额`;
+                }
 
-        // Morning slot (first button)
-        if (morningSlots <= 0) {
-            timeSlots[0].disabled = true;
-            timeSlots[0].classList.add('disabled');
-            timeSlots[0].innerHTML = currentLang === 'en' ? 
-                'Morning (Fully Booked)' : 
-                '上午 (已满)';
-        } else {
-            timeSlots[0].disabled = false;
-            timeSlots[0].classList.remove('disabled');
-            timeSlots[0].innerHTML = translations.timeSlots[currentLang].morning;
-        }
-
-        // Afternoon slot (second button)
-        if (afternoonSlots <= 0) {
-            timeSlots[1].disabled = true;
-            timeSlots[1].classList.add('disabled');
-            timeSlots[1].innerHTML = currentLang === 'en' ? 
-                'Afternoon (Fully Booked)' : 
-                '下午 (已满)';
-        } else {
-            timeSlots[1].disabled = false;
-            timeSlots[1].classList.remove('disabled');
-            timeSlots[1].innerHTML = translations.timeSlots[currentLang].afternoon;
-        }
+                // Afternoon slot (second button)
+                if (slots.afternoon <= 0) {
+                    timeSlots[1].disabled = true;
+                    timeSlots[1].classList.add('disabled');
+                    timeSlots[1].innerHTML = currentLang === 'en' ? 
+                        'Afternoon (Fully Booked)' : 
+                        '下午 (已满)';
+                } else {
+                    timeSlots[1].disabled = false;
+                    timeSlots[1].classList.remove('disabled');
+                    timeSlots[1].innerHTML = currentLang === 'en' ? 
+                        `Afternoon (1:00 PM - 5:00 PM) - ${slots.afternoon} slots left` : 
+                        `下午 (13:00 - 17:00) - 剩余 ${slots.afternoon} 个名额`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching slots:', error);
+                // Set default values if fetch fails
+                timeSlots[0].innerHTML = translations.timeSlots[currentLang].morning + ' - 5 slots left';
+                timeSlots[1].innerHTML = translations.timeSlots[currentLang].afternoon + ' - 5 slots left';
+            });
     }
 
     function updateCalendar() {
