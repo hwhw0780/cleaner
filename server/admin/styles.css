@@ -1,0 +1,39 @@
+.view-receipt {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: #4A90E2;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+}
+
+.view-receipt:hover {
+    background-color: #357ABD;
+}
+
+td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+}
+
+td:last-child {
+    text-align: center;
+}
+
+.delete-btn {
+    padding: 0.25rem 0.75rem;
+    background-color: #E53E3E;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+}
+
+.delete-btn:hover {
+    background-color: #C53030;
+} 

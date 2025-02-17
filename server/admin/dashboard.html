@@ -1,0 +1,36 @@
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Client Name</th>
+                    <th>Service Type</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Payment Method</th>
+                    <th>Receipt</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% bookings.forEach(function(booking) { %>
+                <tr>
+                    <td><%= booking.date %></td>
+                    <td><%= booking.time_period %></td>
+                    <td><%= booking.client_name %></td>
+                    <td><%= booking.service_type %></td>
+                    <td><%= booking.contact %></td>
+                    <td><%= booking.email %></td>
+                    <td><%= booking.address %></td>
+                    <td><%= booking.payment_method %></td>
+                    <td>
+                        <% if (booking.receipt_path) { %>
+                            <a href="/uploads/<%= booking.receipt_path %>" target="_blank" class="view-receipt">View Receipt</a>
+                        <% } else { %>
+                            N/A
+                        <% } %>
+                    </td>
+                    <td>
+                        <button onclick="deleteBooking('<%= booking.id %>')" class="delete-btn">Delete</button>
+                    </td>
+                </tr>
+                <% }); %>
+            </tbody> 

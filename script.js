@@ -347,23 +347,46 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Get form data
-        const formData = {
-            date: selectedDate,
-            time_period: selectedTimeSlot.textContent.toLowerCase().includes('morning') ? 'morning' : 'afternoon',
-            client_name: document.getElementById('name').value.trim(),
-            service_type: serviceType.value,
-            contact: document.getElementById('phone').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            address: document.getElementById('address').value.trim()
-        };
+        // Get payment method
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        if (!paymentMethod) {
+            alert(currentLang === 'en' ? 
+                'Please select a payment method.' : 
+                '请选择支付方式。');
+            return;
+        }
 
-        // Validate all fields are filled
-        for (const [key, value] of Object.entries(formData)) {
-            if (!value) {
+        // Check for receipt if online payment is selected
+        const receiptInput = document.getElementById('receiptUpload');
+        if (paymentMethod.value === 'online' && (!receiptInput.files || !receiptInput.files[0])) {
+            alert(currentLang === 'en' ? 
+                'Please upload your payment receipt.' : 
+                '请上传支付凭证。');
+            return;
+        }
+
+        // Create FormData object to handle file upload
+        const formData = new FormData();
+        formData.append('date', selectedDate);
+        formData.append('time_period', selectedTimeSlot.textContent.toLowerCase().includes('morning') ? 'morning' : 'afternoon');
+        formData.append('client_name', document.getElementById('name').value.trim());
+        formData.append('service_type', serviceType.value);
+        formData.append('contact', document.getElementById('phone').value.trim());
+        formData.append('email', document.getElementById('email').value.trim());
+        formData.append('address', document.getElementById('address').value.trim());
+        formData.append('payment_method', paymentMethod.value);
+        
+        if (paymentMethod.value === 'online' && receiptInput.files[0]) {
+            formData.append('receipt', receiptInput.files[0]);
+        }
+
+        // Validate all required fields
+        const requiredFields = ['date', 'time_period', 'client_name', 'service_type', 'contact', 'email', 'address'];
+        for (const field of requiredFields) {
+            if (!formData.get(field)) {
                 alert(currentLang === 'en' ? 
-                    `Please fill in ${key.replace('_', ' ')}` : 
-                    `请填写${key.replace('_', ' ')}`);
+                    `Please fill in ${field.replace('_', ' ')}` : 
+                    `请填写${field.replace('_', ' ')}`);
                 return;
             }
         }
@@ -371,10 +394,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch('/api/bookings', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
+                body: formData // Send as FormData instead of JSON
             });
 
             const result = await response.json();
