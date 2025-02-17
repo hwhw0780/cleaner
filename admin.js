@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const navItems = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    // Search and filter elements
+    const searchInput = document.getElementById('searchAppointments');
+    const statusFilter = document.getElementById('filterStatus');
+    const dateFilter = document.getElementById('filterDate');
+
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const tabId = item.dataset.tab;
@@ -13,6 +18,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             item.classList.add('active');
             document.getElementById(tabId).classList.add('active');
+
+            // Refresh appointments when switching to appointments tab
+            if (tabId === 'appointments') {
+                fetchAppointments();
+            }
         });
     });
 
@@ -32,136 +42,168 @@ document.addEventListener('DOMContentLoaded', function() {
         return 'slots-high';
     }
 
-    function updateCalendar() {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        
-        // Update month display
-        const monthNames = ["January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"];
-        currentMonthElement.textContent = `${monthNames[month]} ${year}`;
-        
-        // Get first day of month and total days
-        const firstDay = new Date(year, month, 1).getDay();
-        const totalDays = new Date(year, month + 1, 0).getDate();
-        
-        calendar.innerHTML = '';
-        
-        // Add empty cells for days before first of month
-        for (let i = 0; i < firstDay; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.className = 'calendar-day empty';
-            calendar.appendChild(emptyDay);
-        }
-        
-        // Add days of month
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
-        
-        // Calculate the maximum booking date (50 days from today)
-        const maxBookingDate = new Date(today);
-        maxBookingDate.setDate(today.getDate() + 50);
-        maxBookingDate.setHours(0, 0, 0, 0);
-        
-        for (let day = 1; day <= totalDays; day++) {
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'calendar-day';
-            
-            const currentDay = new Date(year, month, day);
-            currentDay.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
-            const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            
-            // Create initial structure
-            dayDiv.innerHTML = `
-                <span class="day-number">${day}</span>
-                <div class="slots-info">
-                    <small>M: ...</small>
-                    <small>A: ...</small>
-                </div>
-            `;
-            
-            // Handle past dates and dates beyond 50 days
-            if (currentDay < today || currentDay > maxBookingDate) {
-                dayDiv.classList.add('disabled');
-                const slotsInfo = dayDiv.querySelector('.slots-info');
-                slotsInfo.innerHTML = `
-                    <small class="slots-none">M: 0</small>
-                    <small class="slots-none">A: 0</small>
-                `;
-            } else {
-                // Update fetch slots section for valid dates
-                fetch(`/api/slots/${dateStr}`)
-                    .then(response => response.json())
-                    .then(slots => {
-                        const slotsInfo = dayDiv.querySelector('.slots-info');
-                        const morning = slots.morning ?? 5;
-                        const afternoon = slots.afternoon ?? 5;
-                        
-                        const morningClass = getSlotClass(morning);
-                        const afternoonClass = getSlotClass(afternoon);
-                        
-                        slotsInfo.innerHTML = `
-                            <small class="${morningClass}">M: ${morning}</small>
-                            <small class="${afternoonClass}">A: ${afternoon}</small>
-                        `;
-                        
-                        // Disable if both slots are 0
-                        if (morning <= 0 && afternoon <= 0) {
-                            dayDiv.classList.add('disabled');
-                        } else {
-                            dayDiv.classList.remove('disabled');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching slots:', error);
-                        const slotsInfo = dayDiv.querySelector('.slots-info');
-                        slotsInfo.innerHTML = `
-                            <small class="slots-high">M: 5</small>
-                            <small class="slots-high">A: 5</small>
-                        `;
-                    });
-                
-                // Add click handler for valid dates
-                dayDiv.addEventListener('click', function() {
-                    if (!this.classList.contains('disabled')) {
-                        // Remove previous selection
-                        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
-                        this.classList.add('selected');
-                        selectedDate = dateStr;
-                        
-                        // Show slot management panel and fetch current slots
-                        selectedDateElement.textContent = dateStr;
-                        fetch(`/api/slots/${dateStr}`)
-                            .then(response => response.json())
-                            .then(slots => {
-                                document.getElementById('morningSlots').value = slots.morning;
-                                document.getElementById('afternoonSlots').value = slots.afternoon;
-                                slotManagement.style.display = 'block';
-                            })
-                            .catch(error => {
-                                console.error('Error fetching slots:', error);
-                                document.getElementById('morningSlots').value = 5;
-                                document.getElementById('afternoonSlots').value = 5;
-                                slotManagement.style.display = 'block';
-                            });
-                    }
-                });
+    // Format date for display
+    function formatDate(dateString) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString('en-US', options);
+    }
+
+    // Fetch appointments from the server
+    async function fetchAppointments() {
+        try {
+            const response = await fetch('/api/bookings');
+            if (!response.ok) {
+                throw new Error('Failed to fetch appointments');
             }
-            
-            calendar.appendChild(dayDiv);
+            const appointments = await response.json();
+            populateAppointments(appointments);
+        } catch (error) {
+            console.error('Error fetching appointments:', error);
+            alert('Failed to load appointments. Please try again.');
         }
     }
 
-    // Add event listeners for month navigation
-    document.querySelector('.month-nav.prev').addEventListener('click', function() {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        updateCalendar();
-    });
+    // Populate appointments table with real data
+    function populateAppointments(appointments) {
+        const tbody = document.getElementById('appointmentsTableBody');
+        tbody.innerHTML = '';
 
-    document.querySelector('.month-nav.next').addEventListener('click', function() {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        updateCalendar();
-    });
+        appointments.forEach(appointment => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${formatDate(appointment.date)}</td>
+                <td>${appointment.time_period === 'morning' ? 'Morning (8:00 AM - 12:00 PM)' : 'Afternoon (1:00 PM - 5:00 PM)'}</td>
+                <td>${appointment.client_name}</td>
+                <td>${appointment.service_type}</td>
+                <td>${appointment.contact}</td>
+                <td>${appointment.address}</td>
+                <td><span class="status-badge status-${appointment.status}">${appointment.status}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="action-btn btn-edit" data-id="${appointment.id}">Edit</button>
+                        <button class="action-btn btn-delete" data-id="${appointment.id}">Delete</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+
+            // Add event listeners for edit and delete buttons
+            const editBtn = tr.querySelector('.btn-edit');
+            const deleteBtn = tr.querySelector('.btn-delete');
+
+            editBtn.addEventListener('click', () => handleEditAppointment(appointment));
+            deleteBtn.addEventListener('click', () => handleDeleteAppointment(appointment.id));
+        });
+    }
+
+    // Handle edit appointment
+    async function handleEditAppointment(appointment) {
+        const newStatus = prompt('Update status (pending/confirmed/completed/cancelled):', appointment.status);
+        if (newStatus && ['pending', 'confirmed', 'completed', 'cancelled'].includes(newStatus)) {
+            try {
+                const response = await fetch(`/api/bookings/${appointment.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update appointment');
+                }
+
+                // Refresh appointments list
+                fetchAppointments();
+            } catch (error) {
+                console.error('Error updating appointment:', error);
+                alert('Failed to update appointment. Please try again.');
+            }
+        }
+    }
+
+    // Handle delete appointment
+    async function handleDeleteAppointment(id) {
+        if (confirm('Are you sure you want to delete this appointment?')) {
+            try {
+                const response = await fetch(`/api/bookings/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete appointment');
+                }
+
+                // Refresh appointments list
+                fetchAppointments();
+            } catch (error) {
+                console.error('Error deleting appointment:', error);
+                alert('Failed to delete appointment. Please try again.');
+            }
+        }
+    }
+
+    // Search and filter functionality
+    function filterAppointments() {
+        fetchAppointments().then(appointments => {
+            if (!appointments) return;
+
+            let filtered = [...appointments];
+
+            // Apply search filter
+            const searchTerm = searchInput.value.toLowerCase();
+            if (searchTerm) {
+                filtered = filtered.filter(appointment => 
+                    appointment.client_name.toLowerCase().includes(searchTerm) ||
+                    appointment.address.toLowerCase().includes(searchTerm) ||
+                    appointment.contact.includes(searchTerm)
+                );
+            }
+
+            // Apply status filter
+            const status = statusFilter.value;
+            if (status !== 'all') {
+                filtered = filtered.filter(appointment => appointment.status === status);
+            }
+
+            // Apply date filter
+            const dateOption = dateFilter.value;
+            const today = new Date();
+            if (dateOption !== 'all') {
+                filtered = filtered.filter(appointment => {
+                    const appointmentDate = new Date(appointment.date);
+                    switch(dateOption) {
+                        case 'today':
+                            return appointmentDate.toDateString() === today.toDateString();
+                        case 'tomorrow':
+                            const tomorrow = new Date(today);
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            return appointmentDate.toDateString() === tomorrow.toDateString();
+                        case 'week':
+                            const weekLater = new Date(today);
+                            weekLater.setDate(weekLater.getDate() + 7);
+                            return appointmentDate >= today && appointmentDate <= weekLater;
+                        case 'month':
+                            return appointmentDate.getMonth() === today.getMonth() &&
+                                   appointmentDate.getFullYear() === today.getFullYear();
+                    }
+                });
+            }
+
+            populateAppointments(filtered);
+        });
+    }
+
+    // Add event listeners for filters
+    searchInput.addEventListener('input', filterAppointments);
+    statusFilter.addEventListener('change', filterAppointments);
+    dateFilter.addEventListener('change', filterAppointments);
+
+    // Initialize calendar
+    updateCalendar();
+
+    // Initial fetch of appointments
+    fetchAppointments();
 
     // Slot management functionality
     document.querySelectorAll('.save-slots').forEach(button => {
@@ -214,40 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     ];
 
-    // Populate appointments table
-    function populateAppointments(appointments) {
-        const tbody = document.getElementById('appointmentsTableBody');
-        tbody.innerHTML = '';
-
-        appointments.forEach(appointment => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${appointment.date}</td>
-                <td>${appointment.time}</td>
-                <td>${appointment.clientName}</td>
-                <td>${appointment.serviceType}</td>
-                <td>${appointment.contact}</td>
-                <td>${appointment.address}</td>
-                <td><span class="status-badge status-${appointment.status}">${appointment.status}</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="action-btn btn-edit">Edit</button>
-                        <button class="action-btn btn-delete">Delete</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // Initialize appointments table
-    populateAppointments(sampleAppointments);
-
     // Search and filter functionality
-    const searchInput = document.getElementById('searchAppointments');
-    const statusFilter = document.getElementById('filterStatus');
-    const dateFilter = document.getElementById('filterDate');
-
     function filterAppointments() {
         let filtered = [...sampleAppointments];
 

@@ -221,6 +221,41 @@ app.put('/api/bookings/:id', async (req, res) => {
     }
 });
 
+// Delete booking (admin only)
+app.delete('/api/bookings/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // First, get the booking details to update available slots
+        const bookingResult = await db.query(
+            'SELECT date, time_period FROM bookings WHERE id = $1',
+            [id]
+        );
+
+        if (bookingResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Booking not found' });
+        }
+
+        const booking = bookingResult.rows[0];
+
+        // Delete the booking
+        await db.query('DELETE FROM bookings WHERE id = $1', [id]);
+
+        // Increase available slots
+        await db.query(`
+            INSERT INTO available_slots (date, period, slots_available)
+            VALUES ($1, $2, 1)
+            ON CONFLICT (date, period)
+            DO UPDATE SET slots_available = available_slots.slots_available + 1
+        `, [booking.date, booking.time_period]);
+
+        res.json({ message: 'Booking deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting booking:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 }); 
