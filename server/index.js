@@ -2,10 +2,29 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const db = require('./db');
+const multer = require('multer');
 const { sendConfirmationEmail } = require('./emailService');
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/') // Make sure this directory exists
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname)
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// Create uploads directory if it doesn't exist
+const fs = require('fs');
+if (!fs.existsSync('uploads')) {
+    fs.mkdirSync('uploads');
+}
 
 // Check environment variables at startup
 console.log('Checking environment configuration...');
@@ -136,9 +155,10 @@ app.put('/api/slots/:date', async (req, res) => {
 });
 
 // Create a new booking
-app.post('/api/bookings', async (req, res) => {
+app.post('/api/bookings', upload.single('receipt'), async (req, res) => {
     try {
-        const { date, time_period, client_name, service_type, contact, email, address } = req.body;
+        const { date, time_period, client_name, service_type, contact, email, address, payment_method } = req.body;
+        const receipt_path = req.file ? req.file.filename : null;
 
         // Check if slots are available
         const slotsResult = await db.query(
@@ -159,10 +179,10 @@ app.post('/api/bookings', async (req, res) => {
 
         // Create booking
         const result = await db.query(`
-            INSERT INTO bookings (date, time_period, client_name, service_type, contact, email, address)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO bookings (date, time_period, client_name, service_type, contact, email, address, payment_method, receipt_path)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             RETURNING *
-        `, [date, time_period, client_name, service_type, contact, email, address]);
+        `, [date, time_period, client_name, service_type, contact, email, address, payment_method, receipt_path]);
         console.log('[DEBUG] Booking created successfully');
 
         // Update available slots with proper decrement
